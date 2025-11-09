@@ -10,7 +10,7 @@ class Varasto:
             # virheellinen, nollataan
             self.saldo = 0.0
         else:
-            self.saldo = min(alku_saldo, tilavuus)
+            self.saldo = min(alku_saldo, tilavuus)   
 
     # huom: ominaisuus voidaan myös laskea.
     # Ei tarvita erillistä kenttää viela_tilaa tms.
