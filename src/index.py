@@ -1,9 +1,10 @@
+import os
 import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash
 from varasto import Varasto
 
 app = Flask(__name__)
-app.secret_key = "warehouse-secret-key-change-in-production"
+app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 
 # In-memory storage for warehouses: {id: {"name": str, "varasto": Varasto}}
 warehouses = {}
@@ -119,9 +120,9 @@ def update_capacity(warehouse_id):
 def _apply_capacity_update(warehouse_id, new_capacity):
     warehouse = warehouses[warehouse_id]
     current_stock = warehouse["varasto"].saldo
-    warehouse["varasto"].tilavuus = new_capacity
-    if current_stock > new_capacity:
-        warehouse["varasto"].saldo = new_capacity
+    # Create new Varasto with updated capacity (respects class invariants)
+    new_stock = min(current_stock, new_capacity)
+    warehouse["varasto"] = Varasto(new_capacity, new_stock)
     flash(f"Capacity updated to {new_capacity} units.", "success")
 
 
@@ -138,4 +139,5 @@ def delete_warehouse(warehouse_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode)
