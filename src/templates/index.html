@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Warehouse Manager - Home{% endblock %}
+
+{% block content %}
+<h1>Warehouse Manager</h1>
+
+<div class="card">
+    <h2>Create New Warehouse</h2>
+    <form action="{{ url_for('create_warehouse') }}" method="POST">
+        <div class="form-group">
+            <label for="name">Warehouse Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="capacity">Capacity:</label>
+            <input type="number" id="capacity" name="capacity" step="0.1" min="0.1" value="100" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Warehouse</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Your Warehouses</h2>
+    {% if warehouses %}
+        <ul style="list-style: none; padding: 0;">
+            {% for id, wh in warehouses.items() %}
+            <li style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>{{ wh["name"] }}</strong>
+                    <span style="color: #666; margin-left: 10px;">
+                        ({{ wh["varasto"].saldo }}/{{ wh["varasto"].tilavuus }} filled)
+                    </span>
+                </div>
+                <a href="{{ url_for('warehouse_detail', warehouse_id=id) }}" class="btn btn-primary">Manage</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="color: #666;">No warehouses yet. Create one above!</p>
+    {% endif %}
+</div>
+{% endblock %}

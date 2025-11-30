@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ warehouse["name"] }} - Warehouse Manager{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 20px;"><a href="{{ url_for('home') }}" class="nav-link">&larr; Back to All Warehouses</a></p>
+
+<h1>{{ warehouse["name"] }}</h1>
+
+<div class="tabs">
+    <a href="{{ url_for('warehouse_detail', warehouse_id=warehouse_id) }}" class="tab {% if tab == 'main' %}active{% endif %}">Main</a>
+    <a href="{{ url_for('warehouse_settings', warehouse_id=warehouse_id) }}" class="tab {% if tab == 'settings' %}active{% endif %}">Settings</a>
+</div>
+
+{% if tab == 'main' %}
+<div class="card">
+    <h2>Storage Status</h2>
+    
+    {% set fill_percent = (warehouse["varasto"].saldo / warehouse["varasto"].tilavuus * 100) if warehouse["varasto"].tilavuus > 0 else 0 %}
+    
+    <div style="margin-bottom: 15px;">
+        <div style="background: #e0e0e0; border-radius: 10px; height: 30px; overflow: hidden;">
+            <div style="background: {% if fill_percent > 90 %}#dc3545{% elif fill_percent > 70 %}#ffc107{% else %}#28a745{% endif %}; height: 100%; width: {{ fill_percent }}%; transition: width 0.3s;"></div>
+        </div>
+        <p style="margin-top: 10px; color: #555;">
+            <strong>{{ "%.1f"|format(warehouse["varasto"].saldo) }}</strong> / {{ "%.1f"|format(warehouse["varasto"].tilavuus) }} units 
+            (<strong>{{ "%.1f"|format(fill_percent) }}%</strong> filled)
+        </p>
+        <p style="color: #666;">
+            Space available: <strong>{{ "%.1f"|format(warehouse["varasto"].paljonko_mahtuu()) }}</strong> units
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Add to Storage</h2>
+    <form action="{{ url_for('add_stock', warehouse_id=warehouse_id) }}" method="POST" style="display: flex; align-items: center;">
+        <input type="number" name="amount" step="0.1" min="0.1" placeholder="Amount" required>
+        <button type="submit" class="btn btn-success">Add</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Remove from Storage</h2>
+    <form action="{{ url_for('remove_stock', warehouse_id=warehouse_id) }}" method="POST" style="display: flex; align-items: center;">
+        <input type="number" name="amount" step="0.1" min="0.1" placeholder="Amount" required>
+        <button type="submit" class="btn btn-warning">Remove</button>
+    </form>
+</div>
+
+{% elif tab == 'settings' %}
+<div class="card">
+    <h2>Change Capacity</h2>
+    <form action="{{ url_for('update_capacity', warehouse_id=warehouse_id) }}" method="POST">
+        <div class="form-group">
+            <label for="new_capacity">New Capacity:</label>
+            <input type="number" id="new_capacity" name="new_capacity" step="0.1" min="0.1" value="{{ warehouse["varasto"].tilavuus }}" required>
+        </div>
+        <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">
+            Note: If new capacity is less than current stock ({{ "%.1f"|format(warehouse["varasto"].saldo) }}), stock will be adjusted to match the new capacity.
+        </p>
+        <button type="submit" class="btn btn-primary">Update Capacity</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Danger Zone</h2>
+    <p style="color: #666; margin-bottom: 15px;">Permanently delete this warehouse. This action cannot be undone.</p>
+    <form action="{{ url_for('delete_warehouse', warehouse_id=warehouse_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this warehouse?');">
+        <button type="submit" class="btn btn-danger">Delete Warehouse</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
